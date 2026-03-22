@@ -1,6 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { RawData } from 'ws'
-import { WebSocket } from 'ws'
+import { RawData, WebSocket } from 'ws'
 
 interface RelayClientParams {
   relayUrl: string
@@ -19,6 +18,7 @@ export class RelayClient extends EventEmitter {
   relayUrl: string
   clientId: string
   reconnectInterval: number
+  reconnectTimeout?: ReturnType<typeof setTimeout>
   isConnected = false
   isManuallyClosed = false
 
@@ -30,10 +30,13 @@ export class RelayClient extends EventEmitter {
   }
 
   connect() {
-    if (this.isConnected) {
+    const wsReadyState = this.ws?.readyState
+    if (wsReadyState === WebSocket.OPEN || wsReadyState === WebSocket.CONNECTING) {
       return
     }
 
+    this.isManuallyClosed = false
+    this.clearReconnectTimeout()
     this.ws = new WebSocket(this.relayUrl)
 
     this.ws.on('open', () => this.onOpen())
@@ -44,6 +47,7 @@ export class RelayClient extends EventEmitter {
 
   disconnect() {
     this.isManuallyClosed = true
+    this.clearReconnectTimeout()
     this.ws?.close()
   }
 
@@ -64,6 +68,7 @@ export class RelayClient extends EventEmitter {
 
   private onOpen() {
     this.isConnected = true
+    this.clearReconnectTimeout()
     console.log(`[Relay Client] Connected to ${this.relayUrl}`)
 
     this.identify()
@@ -80,6 +85,7 @@ export class RelayClient extends EventEmitter {
 
   private onClose() {
     this.isConnected = false
+    this.ws = undefined
     console.log('[RelayClient] Connection closed')
     this.emit('disconnected')
 
@@ -90,10 +96,14 @@ export class RelayClient extends EventEmitter {
 
   private onError(error: Error) {
     console.error('[RelayClient] Websocket error:', error)
-    this.emit('error', error)
+    this.emit('relay-error', error)
   }
 
   private identify() {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      return
+    }
+
     const message = JSON.stringify({
       type: 'identify',
       clientId: this.clientId,
@@ -114,10 +124,24 @@ export class RelayClient extends EventEmitter {
   }
 
   private scheduleReconnect() {
+    if (this.reconnectTimeout || this.isManuallyClosed) {
+      return
+    }
+
     console.log(`[RelayClient] Reconnecting in ${this.reconnectInterval}ms...`)
 
-    setTimeout(() => {
+    this.reconnectTimeout = setTimeout(() => {
+      this.reconnectTimeout = undefined
       this.connect()
     }, this.reconnectInterval)
+  }
+
+  private clearReconnectTimeout() {
+    if (!this.reconnectTimeout) {
+      return
+    }
+
+    clearTimeout(this.reconnectTimeout)
+    this.reconnectTimeout = undefined
   }
 }
