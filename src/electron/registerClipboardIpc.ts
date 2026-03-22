@@ -21,4 +21,8 @@ export function registerClipboardIpc(bridge: RelayBridge) {
   ipcMain.handle('clipboard:get', async () => {
     return bridge.getClipboard()
   })
+
+  ipcMain.handle('clipboard:write', async (_event, content: string) => {
+    return bridge.updateClipboard(content)
+  })
 }

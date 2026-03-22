@@ -26,45 +26,38 @@ export class RelayBridge {
     this.window = window
   }
 
-  async connect(relayUrl: string) {
-    const clientInfo = await this.getDeviceIdentity()
+  async connect(url: string) {
+    const relayUrl = await this.buildFinalUrl(url)
 
-    if (this.relayClient?.relayUrl === relayUrl) {
-      this.relayClient.connect()
-      const status = this.getRelayStatus(clientInfo)
-      this.emitRelayStatus(status)
-      return status
+    if (!this.relayClient || relayUrl !== this.relayClient?.relayUrl) {
+      this.disconnectRelayClient()
+
+      const clientInfo = await this.getDeviceIdentity()
+      this.relayClient = new RelayClient({ relayUrl, clientInfo })
+      this.bindRelayClientEvents(this.relayClient)
     }
 
-    this.disconnectRelayClient()
-
-    this.relayClient = new RelayClient({ relayUrl, clientInfo })
-    this.bindRelayClientEvents(this.relayClient)
     this.relayClient.connect()
 
-    const status = this.getRelayStatus(clientInfo)
-    this.emitRelayStatus(status)
-    return status
+    this.emitRelayStatus()
+    return await this.getStatus()
   }
 
   async disconnect() {
-    const clientInfo = await this.getDeviceIdentity()
     this.disconnectRelayClient()
 
-    const status = this.getRelayStatus(clientInfo)
-    this.emitRelayStatus(status)
-    return status
+    this.emitRelayStatus()
+    return await this.getStatus()
   }
 
-  async getStatus() {
-    const clientInfo = await this.getDeviceIdentity()
-    return this.getRelayStatus(clientInfo)
-  }
-
-  sendClipboard(content: string) {
+  updateClipboard(content: string) {
     clipboard.writeText(content)
     this.emitClipboardUpdated(content)
 
+    return true
+  }
+
+  sendClipboard(content: string) {
     return {
       ok: this.relayClient?.send(content) ?? false,
     }
@@ -79,12 +72,9 @@ export class RelayBridge {
     this.window = null
   }
 
-  private async getDeviceIdentity() {
-    await this.initialize()
-    return this.deviceIdentity as ClientInfo
-  }
+  async getStatus(): Promise<RelayStatus> {
+    const clientInfo = await this.getDeviceIdentity()
 
-  private getRelayStatus(clientInfo: ClientInfo): RelayStatus {
     return {
       clientId: clientInfo.clientId,
       clientName: clientInfo.clientName,
@@ -93,11 +83,24 @@ export class RelayBridge {
     }
   }
 
-  private emitRelayStatus(status: RelayStatus) {
+  private async buildFinalUrl(relayUrl: string) {
+    const clientInfo = await this.getDeviceIdentity()
+    const baseUrl = relayUrl?.includes('?') ? relayUrl : `${relayUrl}?pair_id=pair123`
+
+    return `${baseUrl}&device_id=${clientInfo.clientId}`
+  }
+
+  private async getDeviceIdentity() {
+    await this.initialize()
+    return this.deviceIdentity as ClientInfo
+  }
+
+  private async emitRelayStatus() {
     if (!this.window || this.window.isDestroyed()) {
       return
     }
 
+    const status = await this.getStatus()
     this.window.webContents.send('relay:status', status)
   }
 
@@ -111,16 +114,16 @@ export class RelayBridge {
 
   private bindRelayClientEvents(client: RelayClient) {
     client.on('connected', async () => {
-      this.emitRelayStatus(await this.getStatus())
+      this.emitRelayStatus()
     })
 
     client.on('disconnected', async () => {
-      this.emitRelayStatus(await this.getStatus())
+      this.emitRelayStatus()
     })
 
     client.on('relay-error', async (error: Error) => {
       console.error('[Main] Relay error:', error)
-      this.emitRelayStatus(await this.getStatus())
+      this.emitRelayStatus()
     })
 
     client.on('new-connection', (clientInfo: ClientInfo) => {

@@ -5,4 +5,7 @@ export const clipboardApi = {
   getMessage() {
     return window.electronAPI.getMessage();
   },
+  writeClipboard(content: string) {
+    return window.electronAPI.writeClipboard(content);
+  },
 };

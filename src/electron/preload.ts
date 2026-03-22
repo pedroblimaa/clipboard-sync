@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getRelayStatus: () => ipcRenderer.invoke('clipboard:status'),
   sendMessage: (content: string) => ipcRenderer.invoke('clipboard:send', content),
   getMessage: () => ipcRenderer.invoke('clipboard:get'),
+  writeClipboard: (content: string) => ipcRenderer.invoke('clipboard:write', content),
   onClipboardUpdated: (callback: (content: string) => void) => {
     const listener = (_event: unknown, content: string) => callback(content)
     ipcRenderer.on('clipboard:updated', listener)

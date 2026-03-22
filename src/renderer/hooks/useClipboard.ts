@@ -18,7 +18,7 @@ export function useClipboard() {
   };
 
   const handleCopyToSystem = async () => {
-    await clipboardApi.sendMessage(clipboardText);
+    await clipboardApi.writeClipboard(clipboardText);
     setStatus('Copied to system clipboard');
   };
 

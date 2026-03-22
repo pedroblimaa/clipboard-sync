@@ -15,6 +15,7 @@ declare global {
       getRelayStatus: () => Promise<RelayStatus>;
       sendMessage: (content: string) => Promise<{ ok: boolean }>;
       getMessage: () => Promise<string>;
+      writeClipboard: (content: string) => Promise<boolean>;
       onClipboardUpdated: (callback: (content: string) => void) => () => void;
       onRelayStatus: (callback: (status: RelayStatus) => void) => () => void;
     };
