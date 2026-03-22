@@ -35,6 +35,60 @@ h1 {
   color: rgba(245, 239, 226, 0.84);
 }
 
+.status-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 18px;
+  margin-bottom: 24px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.status-pill-connected {
+  background: rgba(103, 227, 179, 0.15);
+  color: #92f0cb;
+}
+
+.status-pill-disconnected {
+  background: rgba(255, 177, 122, 0.15);
+  color: #ffb17a;
+}
+
+.status-copy {
+  margin: 12px 0 0;
+  color: rgba(245, 239, 226, 0.78);
+}
+
+.client-meta {
+  display: grid;
+  gap: 6px;
+  text-align: right;
+  font-size: 13px;
+  color: rgba(245, 239, 226, 0.66);
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+input,
 textarea {
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -43,6 +97,10 @@ textarea {
   resize: vertical;
   color: inherit;
   background: rgba(0, 0, 0, 0.22);
+}
+
+input {
+  resize: none;
 }
 
 .actions {
@@ -62,7 +120,24 @@ button {
   font-weight: 700;
 }
 
-.status {
-  margin: 18px 0 0;
-  color: rgba(245, 239, 226, 0.78);
+button:disabled,
+input:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 720px) {
+  .status-card,
+  .input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .status-card {
+    display: grid;
+  }
+
+  .client-meta {
+    text-align: left;
+  }
 }
