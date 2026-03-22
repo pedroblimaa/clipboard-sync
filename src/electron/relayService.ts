@@ -1,31 +1,36 @@
 import { EventEmitter } from 'node:events'
 import { RawData, WebSocket } from 'ws'
 
-interface RelayClientParams {
+export interface RelayClientParams {
   relayUrl: string
+  clientInfo: ClientInfo
+  reconnectInterval?: number
+}
+
+export interface ClientInfo {
   clientId: string
-  reconnectInterval: number
+  clientName: string
 }
 
 interface Message {
   type: 'identify' | 'normal'
   content?: string
-  clientId?: string
+  clientInfo?: ClientInfo
 }
 
 export class RelayClient extends EventEmitter {
   ws?: WebSocket
   relayUrl: string
-  clientId: string
+  clientInfo: ClientInfo
   reconnectInterval: number
   reconnectTimeout?: ReturnType<typeof setTimeout>
   isConnected = false
   isManuallyClosed = false
 
-  constructor({ relayUrl, clientId, reconnectInterval = 3000 }: RelayClientParams) {
+  constructor({ relayUrl, clientInfo, reconnectInterval = 3000 }: RelayClientParams) {
     super()
     this.relayUrl = relayUrl
-    this.clientId = clientId
+    this.clientInfo = clientInfo
     this.reconnectInterval = reconnectInterval
   }
 
@@ -71,6 +76,7 @@ export class RelayClient extends EventEmitter {
     this.clearReconnectTimeout()
     console.log(`[Relay Client] Connected to ${this.relayUrl}`)
 
+    this.emit('connected', this.clientInfo)
     this.identify()
   }
 
@@ -106,7 +112,7 @@ export class RelayClient extends EventEmitter {
 
     const message = JSON.stringify({
       type: 'identify',
-      clientId: this.clientId,
+      clientInfo: this.clientInfo,
     })
 
     this.ws.send(message)
@@ -115,7 +121,7 @@ export class RelayClient extends EventEmitter {
   private handleMessage(message: Message) {
     switch (message.type) {
       case 'identify':
-        this.emit('new-connection', message.clientId)
+        this.emit('new-connection', message.clientInfo)
         break
       case 'normal':
         this.emit('message', message.content)

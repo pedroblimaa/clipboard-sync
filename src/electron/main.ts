@@ -1,6 +1,11 @@
-import { app, BrowserWindow, clipboard, ipcMain } from 'electron'
-import path from 'node:path'
+import { app, BrowserWindow } from 'electron'
 import started from 'electron-squirrel-startup'
+import path from 'node:path'
+import { RelayBridge } from './relayBridge'
+import { registerClipboardIpc } from './registerClipboardIpc'
+
+let mainWindow: BrowserWindow | null = null
+const relayBridge = new RelayBridge(app)
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -9,7 +14,7 @@ if (started) {
 
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -26,9 +31,19 @@ const createWindow = () => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools()
+  relayBridge.setWindow(mainWindow)
+
+  mainWindow.on('closed', () => {
+    relayBridge.setWindow(null)
+    mainWindow = null
+  })
 }
 
-app.on('ready', createWindow)
+app.on('ready', async () => {
+  registerClipboardIpc(relayBridge)
+  await relayBridge.initialize()
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -42,12 +57,6 @@ app.on('activate', () => {
   }
 })
 
-// ----------- App methods ---------------------------
-ipcMain.handle('clipboard:send', async (_event, content: string) => {
-  clipboard.writeText(content)
-  return { ok: true }
-})
-
-ipcMain.handle('clipboard:get', async () => {
-  return clipboard.readText()
+app.on('before-quit', () => {
+  relayBridge.dispose()
 })
