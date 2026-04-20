@@ -2,15 +2,7 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 import { contextBridge, ipcRenderer } from 'electron';
-
-type RelayStatus = {
-  clientId: string
-  clientName: string
-  isConnected: boolean
-  relayUrl: string | null
-  connectionState: 'disconnected' | 'connecting' | 'connected' | 'reconnecting'
-  errorMessage: string | null
-}
+import type { RelayStatus } from '../../shared/relay';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   connectRelay: (relayUrl: string) => ipcRenderer.invoke('clipboard:connect', relayUrl),

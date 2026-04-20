@@ -1,54 +1,13 @@
 import { useEffect, useEffectEvent, useState } from 'react';
 import { clipboardApi, type RelayStatus } from '../lib/electron-api';
-
-const initialRelayStatus: RelayStatus = {
-  clientId: '',
-  clientName: '',
-  isConnected: false,
-  relayUrl: null,
-  connectionState: 'disconnected',
-  errorMessage: null,
-};
-
-function sanitizeRelayUrl(relayUrl: string | null) {
-  if (!relayUrl) {
-    return '';
-  }
-
-  try {
-    const parsedUrl = new URL(relayUrl);
-    parsedUrl.searchParams.delete('device_id');
-    parsedUrl.searchParams.delete('pair_id');
-    return parsedUrl.toString();
-  } catch {
-    return relayUrl
-      .replace(/[?&](device_id|pair_id)=[^&]*/g, '')
-      .replace(/[?&]$/, '');
-  }
-}
-
-function buildLogEntry(content: string) {
-  const time = new Date().toLocaleTimeString();
-  return `[${time}] ${content}`;
-}
-
-function buildStatusDetail(status: RelayStatus) {
-  switch (status.connectionState) {
-    case 'connected':
-      return `Connected as ${status.clientName || status.clientId}.`;
-    case 'connecting':
-      return 'Connecting to the relay...';
-    case 'reconnecting':
-      return status.errorMessage
-        ? `Connection lost: ${status.errorMessage}. Retrying...`
-        : 'Connection lost. Retrying...';
-    case 'disconnected':
-    default:
-      return status.errorMessage
-        ? `Unable to connect: ${status.errorMessage}`
-        : 'Disconnected from relay.';
-  }
-}
+import {
+  buildLogEntry,
+  buildStatusDetail,
+  getStatusLabel,
+  initialRelayStatus,
+  isConnectionActive,
+  sanitizeRelayUrl,
+} from '../lib/relayStatus';
 
 export function useClipboard() {
   const [connectionUrl, setConnectionUrl] = useState('');
@@ -76,22 +35,7 @@ export function useClipboard() {
   useEffect(() => {
     let isMounted = true;
 
-    void clipboardApi
-      .getRelayStatus()
-      .then((status) => {
-        if (!isMounted) {
-          return;
-        }
-
-        syncRelayStatus(status);
-      })
-      .catch(() => {
-        if (!isMounted) {
-          return;
-        }
-
-        setStatusDetail('Unable to load relay status.');
-      });
+    void loadInitialRelayStatus(isMounted, syncRelayStatus, setStatusDetail);
 
     const unsubscribeClipboard = clipboardApi.onClipboardUpdated((content) => {
       appendReceivedMessage(content);
@@ -167,30 +111,41 @@ export function useClipboard() {
     }
   };
 
-  const statusLabel =
-    relayStatus.connectionState === 'connected'
-      ? 'Connected'
-      : relayStatus.connectionState === 'connecting'
-        ? 'Connecting'
-        : relayStatus.connectionState === 'reconnecting'
-          ? 'Reconnecting'
-          : 'Disconnected';
-
-  const isConnectionActive = relayStatus.connectionState !== 'disconnected';
-
   return {
     connectionUrl,
     messageToSend,
     receivedMessages,
     relayStatus,
     statusDetail,
-    statusLabel,
+    statusLabel: getStatusLabel(relayStatus),
     isBusy: isTogglingConnection,
-    isConnectionActive,
+    isConnectionActive: isConnectionActive(relayStatus),
     isSending,
     setConnectionUrl,
     setMessageToSend,
     handleConnectionToggle,
     handleSendMessage,
   };
+}
+
+async function loadInitialRelayStatus(
+  isMounted: boolean,
+  syncRelayStatus: (status: RelayStatus) => void,
+  setStatusDetail: (detail: string) => void,
+) {
+  try {
+    const status = await clipboardApi.getRelayStatus();
+
+    if (!isMounted) {
+      return;
+    }
+
+    syncRelayStatus(status);
+  } catch {
+    if (!isMounted) {
+      return;
+    }
+
+    setStatusDetail('Unable to load relay status.');
+  }
 }

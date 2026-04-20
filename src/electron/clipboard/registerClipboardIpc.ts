@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron'
-import { RelayBridge } from './relayBridge'
+import type { RelayBridge } from '../relay/bridge'
 
 export function registerClipboardIpc(bridge: RelayBridge) {
   ipcMain.handle('clipboard:connect', async (_event, relayUrl: string) => {

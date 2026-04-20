@@ -1,11 +1,6 @@
-export interface RelayStatus {
-  clientId: string;
-  clientName: string;
-  isConnected: boolean;
-  relayUrl: string | null;
-  connectionState: 'disconnected' | 'connecting' | 'connected' | 'reconnecting';
-  errorMessage: string | null;
-}
+import type { RelayStatus } from '../../shared/relay';
+
+export type { RelayStatus };
 
 export const clipboardApi = {
   connectRelay(relayUrl: string) {

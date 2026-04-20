@@ -1,8 +1,8 @@
 import { app, BrowserWindow } from 'electron'
 import started from 'electron-squirrel-startup'
 import path from 'node:path'
-import { RelayBridge } from './relayBridge'
-import { registerClipboardIpc } from './registerClipboardIpc'
+import { RelayBridge } from '../relay/bridge'
+import { registerClipboardIpc } from '../clipboard/registerClipboardIpc'
 
 let mainWindow: BrowserWindow | null = null
 const relayBridge = new RelayBridge(app)
