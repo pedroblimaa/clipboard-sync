@@ -3,6 +3,15 @@
 
 import { contextBridge, ipcRenderer } from 'electron';
 
+type RelayStatus = {
+  clientId: string
+  clientName: string
+  isConnected: boolean
+  relayUrl: string | null
+  connectionState: 'disconnected' | 'connecting' | 'connected' | 'reconnecting'
+  errorMessage: string | null
+}
+
 contextBridge.exposeInMainWorld('electronAPI', {
   connectRelay: (relayUrl: string) => ipcRenderer.invoke('clipboard:connect', relayUrl),
   disconnectRelay: () => ipcRenderer.invoke('clipboard:disconnect'),
@@ -19,21 +28,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
   },
   onRelayStatus: (
-    callback: (status: {
-      clientId: string
-      clientName: string
-      isConnected: boolean
-      relayUrl: string | null
-    }) => void,
+    callback: (status: RelayStatus) => void,
   ) => {
     const listener = (
       _event: unknown,
-      status: {
-        clientId: string
-        clientName: string
-        isConnected: boolean
-        relayUrl: string | null
-      },
+      status: RelayStatus,
     ) => callback(status)
 
     ipcRenderer.on('relay:status', listener)

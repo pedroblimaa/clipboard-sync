@@ -12,6 +12,12 @@ export interface ClientInfo {
   clientName: string
 }
 
+export type RelayConnectionState =
+  | 'disconnected'
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+
 interface Message {
   type: 'identify' | 'normal'
   content?: string
@@ -26,6 +32,8 @@ export class RelayClient extends EventEmitter {
   reconnectTimeout?: ReturnType<typeof setTimeout>
   isConnected = false
   isManuallyClosed = false
+  connectionState: RelayConnectionState = 'disconnected'
+  lastError: string | null = null
 
   constructor({ relayUrl, clientInfo, reconnectInterval = 3000 }: RelayClientParams) {
     super()
@@ -42,6 +50,9 @@ export class RelayClient extends EventEmitter {
 
     this.isManuallyClosed = false
     this.clearReconnectTimeout()
+    this.lastError = null
+    this.connectionState = 'connecting'
+    this.emit('connecting')
     this.ws = new WebSocket(this.relayUrl)
 
     this.ws.on('open', () => this.onOpen())
@@ -53,7 +64,14 @@ export class RelayClient extends EventEmitter {
   disconnect() {
     this.isManuallyClosed = true
     this.clearReconnectTimeout()
+    this.lastError = null
+    this.connectionState = 'disconnected'
     this.ws?.close()
+
+    if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
+      this.isConnected = false
+      this.emit('disconnected')
+    }
   }
 
   send(message: string) {
@@ -74,6 +92,8 @@ export class RelayClient extends EventEmitter {
   private onOpen() {
     this.isConnected = true
     this.clearReconnectTimeout()
+    this.lastError = null
+    this.connectionState = 'connected'
     console.log(`[Relay Client] Connected to ${this.relayUrl}`)
 
     this.emit('connected', this.clientInfo)
@@ -92,6 +112,7 @@ export class RelayClient extends EventEmitter {
   private onClose() {
     this.isConnected = false
     this.ws = undefined
+    this.connectionState = 'disconnected'
     console.log('[RelayClient] Connection closed')
     this.emit('disconnected')
 
@@ -101,6 +122,7 @@ export class RelayClient extends EventEmitter {
   }
 
   private onError(error: Error) {
+    this.lastError = error.message
     console.error('[RelayClient] Websocket error:', error)
     this.emit('relay-error', error)
   }
@@ -134,7 +156,9 @@ export class RelayClient extends EventEmitter {
       return
     }
 
+    this.connectionState = 'reconnecting'
     console.log(`[RelayClient] Reconnecting in ${this.reconnectInterval}ms...`)
+    this.emit('reconnecting', this.reconnectInterval)
 
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectTimeout = undefined

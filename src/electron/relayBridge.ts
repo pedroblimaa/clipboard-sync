@@ -1,12 +1,14 @@
 import { App, BrowserWindow, clipboard } from 'electron'
 import { loadDeviceIdentity } from './deviceIdentity'
-import { ClientInfo, RelayClient } from './relayService'
+import { ClientInfo, RelayClient, RelayConnectionState } from './relayService'
 
 export interface RelayStatus {
   clientId: string
   clientName: string
   isConnected: boolean
   relayUrl: string | null
+  connectionState: RelayConnectionState
+  errorMessage: string | null
 }
 
 export class RelayBridge {
@@ -80,6 +82,8 @@ export class RelayBridge {
       clientName: clientInfo.clientName,
       isConnected: this.relayClient?.isConnected ?? false,
       relayUrl: this.relayClient?.relayUrl ?? null,
+      connectionState: this.relayClient?.connectionState ?? 'disconnected',
+      errorMessage: this.relayClient?.lastError ?? null,
     }
   }
 
@@ -117,7 +121,15 @@ export class RelayBridge {
       this.emitRelayStatus()
     })
 
+    client.on('connecting', async () => {
+      this.emitRelayStatus()
+    })
+
     client.on('disconnected', async () => {
+      this.emitRelayStatus()
+    })
+
+    client.on('reconnecting', async () => {
       this.emitRelayStatus()
     })
 

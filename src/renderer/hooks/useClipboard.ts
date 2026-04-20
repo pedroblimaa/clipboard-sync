@@ -6,6 +6,8 @@ const initialRelayStatus: RelayStatus = {
   clientName: '',
   isConnected: false,
   relayUrl: null,
+  connectionState: 'disconnected',
+  errorMessage: null,
 };
 
 function sanitizeRelayUrl(relayUrl: string | null) {
@@ -30,24 +32,37 @@ function buildLogEntry(content: string) {
   return `[${time}] ${content}`;
 }
 
+function buildStatusDetail(status: RelayStatus) {
+  switch (status.connectionState) {
+    case 'connected':
+      return `Connected as ${status.clientName || status.clientId}.`;
+    case 'connecting':
+      return 'Connecting to the relay...';
+    case 'reconnecting':
+      return status.errorMessage
+        ? `Connection lost: ${status.errorMessage}. Retrying...`
+        : 'Connection lost. Retrying...';
+    case 'disconnected':
+    default:
+      return status.errorMessage
+        ? `Unable to connect: ${status.errorMessage}`
+        : 'Disconnected from relay.';
+  }
+}
+
 export function useClipboard() {
   const [connectionUrl, setConnectionUrl] = useState('');
   const [messageToSend, setMessageToSend] = useState('');
   const [receivedMessages, setReceivedMessages] = useState('');
   const [relayStatus, setRelayStatus] = useState(initialRelayStatus);
   const [statusDetail, setStatusDetail] = useState('Enter a websocket URL and connect.');
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [isTogglingConnection, setIsTogglingConnection] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
   const syncRelayStatus = useEffectEvent((status: RelayStatus) => {
     setRelayStatus(status);
     setConnectionUrl((currentUrl) => currentUrl || sanitizeRelayUrl(status.relayUrl));
-    setStatusDetail(
-      status.isConnected
-        ? `Connected as ${status.clientName || status.clientId}.`
-        : 'Disconnected from relay.',
-    );
+    setStatusDetail(buildStatusDetail(status));
   });
 
   const appendReceivedMessage = useEffectEvent((content: string) => {
@@ -93,17 +108,16 @@ export function useClipboard() {
   }, []);
 
   const handleConnectionToggle = async () => {
-    if (relayStatus.isConnected) {
-      setIsDisconnecting(true);
+    if (relayStatus.connectionState !== 'disconnected') {
+      setIsTogglingConnection(true);
 
       try {
         const nextStatus = await clipboardApi.disconnectRelay();
-        setRelayStatus(nextStatus);
-        setStatusDetail('Disconnected from relay.');
+        syncRelayStatus(nextStatus);
       } catch {
         setStatusDetail('Unable to disconnect from relay.');
       } finally {
-        setIsDisconnecting(false);
+        setIsTogglingConnection(false);
       }
 
       return;
@@ -116,16 +130,15 @@ export function useClipboard() {
       return;
     }
 
-    setIsConnecting(true);
+    setIsTogglingConnection(true);
 
     try {
       const nextStatus = await clipboardApi.connectRelay(nextUrl);
-      setRelayStatus(nextStatus);
-      setStatusDetail('Connection request sent to relay.');
+      syncRelayStatus(nextStatus);
     } catch {
       setStatusDetail('Unable to connect to relay.');
     } finally {
-      setIsConnecting(false);
+      setIsTogglingConnection(false);
     }
   };
 
@@ -154,13 +167,16 @@ export function useClipboard() {
     }
   };
 
-  const statusLabel = isConnecting
-    ? 'Connecting'
-    : isDisconnecting
-      ? 'Disconnecting'
-      : relayStatus.isConnected
-        ? 'Connected'
-        : 'Disconnected';
+  const statusLabel =
+    relayStatus.connectionState === 'connected'
+      ? 'Connected'
+      : relayStatus.connectionState === 'connecting'
+        ? 'Connecting'
+        : relayStatus.connectionState === 'reconnecting'
+          ? 'Reconnecting'
+          : 'Disconnected';
+
+  const isConnectionActive = relayStatus.connectionState !== 'disconnected';
 
   return {
     connectionUrl,
@@ -169,7 +185,8 @@ export function useClipboard() {
     relayStatus,
     statusDetail,
     statusLabel,
-    isBusy: isConnecting || isDisconnecting,
+    isBusy: isTogglingConnection,
+    isConnectionActive,
     isSending,
     setConnectionUrl,
     setMessageToSend,

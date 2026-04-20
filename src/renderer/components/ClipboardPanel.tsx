@@ -10,6 +10,7 @@ export function ClipboardPanel() {
     statusDetail,
     statusLabel,
     isBusy,
+    isConnectionActive,
     isSending,
     setConnectionUrl,
     setMessageToSend,
@@ -55,10 +56,14 @@ export function ClipboardPanel() {
           placeholder="ws://localhost:8080"
           autoComplete="off"
           spellCheck={false}
-          disabled={isBusy || relayStatus.isConnected}
+          disabled={isBusy || isConnectionActive}
         />
         <button type="button" onClick={handleConnectionToggle} disabled={isBusy}>
-          {relayStatus.isConnected ? (isBusy ? 'Disconnecting...' : 'Disconnect') : isBusy ? 'Connecting...' : 'Connect'}
+          {isBusy
+            ? 'Working...'
+            : isConnectionActive
+              ? 'Disconnect'
+              : 'Connect'}
         </button>
       </div>
 

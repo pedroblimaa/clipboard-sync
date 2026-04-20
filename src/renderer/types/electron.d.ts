@@ -5,6 +5,8 @@ interface RelayStatus {
   clientName: string;
   isConnected: boolean;
   relayUrl: string | null;
+  connectionState: 'disconnected' | 'connecting' | 'connected' | 'reconnecting';
+  errorMessage: string | null;
 }
 
 declare global {
