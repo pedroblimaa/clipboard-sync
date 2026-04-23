@@ -1,39 +1,51 @@
 import './MainPanel.css'
-import { useClipboard } from '../../hooks/useClipboard'
+import { Settings2 } from 'lucide-react'
 
-export function MainPanel() {
-  const {
-    connectionUrl,
-    messageToSend,
-    receivedMessages,
-    relayStatus,
-    statusDetail,
-    statusLabel,
-    isBusy,
-    isConnectionActive,
-    isSending,
-    setConnectionUrl,
-    setMessageToSend,
-    handleConnectionToggle,
-    handleSendMessage,
-  } = useClipboard()
+interface MainPanelProps {
+  clipboardItems: string[]
+  statusDetail: string
+  onOpenConfig: () => void
+}
+
+export function MainPanel({ clipboardItems, statusDetail, onOpenConfig }: MainPanelProps) {
+  const hasClipboardItems = clipboardItems.length > 0
 
   return (
-    <div id='main-panel'>
-      <ul className='clipboard-items'>
-        <li>
-          <span className='text'>This is a random test just to create the design</span>
-          <span className='device'>Drope's PC</span>
+    <section id='main-panel'>
+      <div className='panel-header'>
+        <div className='panel-header-copy'>
+          <span className='panel-eyebrow'>Clipboard</span>
+          <h1>Synced items</h1>
+          <p>{statusDetail}</p>
+        </div>
+        <button className='icon-button' type='button' onClick={onOpenConfig} aria-label='Open configuration'>
+          <Settings2 size={18} aria-hidden='true' />
+        </button>
+      </div>
+
+      {hasClipboardItems ? <ClipboardItems items={clipboardItems} /> : <EmptyState />}
+    </section>
+  )
+}
+
+function ClipboardItems({ items }: { items: string[] }) {
+  return (
+    <ul className='clipboard-items'>
+      {items.map((item, index) => (
+        <li key={`${item}-${index}`} className='clipboard-item'>
+          <span className='text'>{item}</span>
+          <span className='device'>Synced clipboard</span>
         </li>
-        <li>
-          <span className='text'>Another random test, this is just to test a second item</span>
-          <span className='device'>Drope's Laptop</span>
-        </li>
-        <li>
-          <span className='text'>And other random test, this is just to test a third item</span>
-          <span className='device'>Camila's MacBook</span>
-        </li>
-      </ul>
+      ))}
+    </ul>
+  )
+}
+
+function EmptyState() {
+  return (
+    <div className='empty-state'>
+      <h2>No synced items yet</h2>
+      <p>Connect to your relay from the configuration page, then copied text will start showing up here.</p>
     </div>
   )
 }

@@ -48,6 +48,11 @@
   --footer-status-glow: var(--color-status-connected-glow);
 }
 
+.footer-status-reconnecting {
+  --footer-status-color: var(--color-status-connecting);
+  --footer-status-glow: var(--color-status-connecting-glow);
+}
+
 .footer-status-disconnected {
   --footer-status-color: var(--color-status-disconnected);
   --footer-status-glow: var(--color-status-disconnected-glow);

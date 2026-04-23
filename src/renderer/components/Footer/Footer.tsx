@@ -1,17 +1,27 @@
 import { RefreshCw } from 'lucide-react'
+import type { RelayConnectionState } from '../../../shared/relay'
 import './Footer.css'
 
-export function Footer() {
+interface FooterProps {
+  clipboardCount: number
+  statusLabel: string
+  connectionState: RelayConnectionState
+}
+
+export function Footer({ clipboardCount, statusLabel, connectionState }: FooterProps) {
+  const clipboardCountLabel = buildClipboardCountLabel(clipboardCount)
+  const statusClassName = `footer-status-${connectionState}`
+
   return (
     <div id='footer'>
       <div className='left-side'>
         <span className='footer-status'>
           <RefreshCw className='footer-icon' aria-hidden='true' strokeWidth={2.4} />
-          <span>1,200 items</span>
+          <span>{clipboardCountLabel}</span>
         </span>
-        <span className='footer-status footer-status-connected'>
+        <span className={`footer-status ${statusClassName}`}>
           <span className='footer-dot' aria-hidden='true' />
-          <span>Connected</span>
+          <span>{statusLabel}</span>
         </span>
       </div>
       <div className='right-side'>
@@ -19,4 +29,8 @@ export function Footer() {
       </div>
     </div>
   )
+}
+
+function buildClipboardCountLabel(clipboardCount: number) {
+  return `${clipboardCount} item${clipboardCount === 1 ? '' : 's'}`
 }
