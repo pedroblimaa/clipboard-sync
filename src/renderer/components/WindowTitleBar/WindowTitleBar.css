@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   color: var(--color-text-muted);
-  background-color: var(--color-surface-footer);
+  background-color: var(--color-bg);
   user-select: none;
 }
 
@@ -54,6 +54,7 @@
   height: 100%;
   display: grid;
   place-items: center;
+  border-radius: 0.55rem;
   color: var(--color-text-muted);
   cursor: pointer;
   transition: color 0.15s ease, background-color 0.15s ease;
