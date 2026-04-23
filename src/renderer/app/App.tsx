@@ -3,6 +3,7 @@ import './App.css'
 import { MainPanel } from '../components/MainPanel/MainPanel'
 import { ConfigPanel } from '../components/ConfigPanel/ConfigPanel'
 import { Footer } from '../components/Footer/Footer'
+import { WindowTitleBar } from '../components/WindowTitleBar/WindowTitleBar'
 import { useClipboard } from '../hooks/useClipboard'
 
 type ActiveView = 'clipboard' | 'configuration'
@@ -40,13 +41,15 @@ export function App() {
 
   return (
     <main className='app-shell'>
+      <WindowTitleBar
+        activeView={activeView}
+        onBack={showClipboard}
+        onOpenConfig={showConfiguration}
+      />
+
       <div key={activeView} className={screenClassName}>
         {isClipboardView ? (
-          <MainPanel
-            clipboardItems={clipboardItems}
-            statusDetail={statusDetail}
-            onOpenConfig={showConfiguration}
-          />
+          <MainPanel clipboardItems={clipboardItems} />
         ) : (
           <ConfigPanel
             connectionUrl={connectionUrl}
@@ -57,7 +60,6 @@ export function App() {
             isConnectionActive={isConnectionActive}
             onConnectionUrlChange={setConnectionUrl}
             onConnectionToggle={handleConnectionToggle}
-            onBack={showClipboard}
           />
         )}
       </div>

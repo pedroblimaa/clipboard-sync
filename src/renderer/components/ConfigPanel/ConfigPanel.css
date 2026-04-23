@@ -3,61 +3,7 @@
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-}
-
-#config-panel .panel-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-#config-panel .panel-header-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-#config-panel .panel-header-copy h1 {
-  margin: 0;
-  font-size: 1.5rem;
-}
-
-.config-card {
-  padding: 1.25rem;
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 1rem;
-  background:
-    radial-gradient(circle at top right, var(--color-bg-glow-cool), transparent 50%),
-    var(--color-surface-panel);
-}
-
-.config-card-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.85rem;
-  display: grid;
-  place-items: center;
-  color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.config-card-copy h2,
-.config-card-copy p {
-  margin: 0;
-}
-
-.config-card-copy h2 {
-  font-size: 1rem;
-}
-
-.config-card-copy p {
-  margin-top: 0.35rem;
-  color: var(--color-text-muted);
-  line-height: 1.5;
+  gap: 1.25rem;
 }
 
 .config-field {
@@ -76,17 +22,16 @@
 }
 
 .config-status {
-  padding: 1rem 1.1rem;
+  padding: 0.9rem 1rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  border-radius: 1rem;
+  align-items: center;
+  gap: 0.8rem;
+  border-radius: 0.85rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--color-border-subtle);
 }
 
-.config-status p {
-  margin: 0;
+.status-detail {
   color: var(--color-text-muted);
   line-height: 1.5;
 }

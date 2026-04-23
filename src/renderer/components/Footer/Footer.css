@@ -63,6 +63,9 @@
   height: 0.5rem;
   border-radius: 999px;
   background-color: var(--footer-status-color);
-  box-shadow: 0 0 0.5rem var(--footer-status-glow);
+  box-shadow:
+    0 0 0.4rem var(--footer-status-glow),
+    0 0 0.9rem var(--footer-status-glow),
+    0 0 1.6rem var(--footer-status-glow);
   flex-shrink: 0;
 }

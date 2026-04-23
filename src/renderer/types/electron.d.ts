@@ -4,6 +4,9 @@ import type { RelayStatus } from '../../shared/relay';
 declare global {
   interface Window {
     electronAPI: {
+      minimizeWindow: () => Promise<void>;
+      toggleMaximizeWindow: () => Promise<void>;
+      closeWindow: () => Promise<void>;
       connectRelay: (relayUrl: string) => Promise<RelayStatus>;
       disconnectRelay: () => Promise<RelayStatus>;
       getRelayStatus: () => Promise<RelayStatus>;

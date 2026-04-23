@@ -5,6 +5,9 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { RelayStatus } from '../../shared/relay';
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
+  toggleMaximizeWindow: () => ipcRenderer.invoke('window:toggle-maximize'),
+  closeWindow: () => ipcRenderer.invoke('window:close'),
   connectRelay: (relayUrl: string) => ipcRenderer.invoke('clipboard:connect', relayUrl),
   disconnectRelay: () => ipcRenderer.invoke('clipboard:disconnect'),
   getRelayStatus: () => ipcRenderer.invoke('clipboard:status'),

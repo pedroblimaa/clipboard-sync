@@ -1,0 +1,70 @@
+.window-titlebar {
+  height: 2.35rem;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  background-color: var(--color-surface-footer);
+  user-select: none;
+}
+
+.window-titlebar-brand {
+  height: 100%;
+  padding: 0 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  -webkit-app-region: drag;
+}
+
+.window-titlebar-navigation {
+  height: 100%;
+  display: flex;
+  -webkit-app-region: no-drag;
+}
+
+.window-titlebar-mark {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  background: var(--color-status-connected);
+  box-shadow: 0 0 0.8rem var(--color-status-connected-glow);
+}
+
+.window-titlebar-drag-region {
+  height: 100%;
+  flex: 1;
+  -webkit-app-region: drag;
+}
+
+.window-titlebar-controls {
+  height: 100%;
+  display: flex;
+  -webkit-app-region: no-drag;
+}
+
+.window-navigation-button {
+  width: 2.65rem;
+}
+
+.window-control {
+  width: 2.9rem;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.window-control:hover {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.window-control-close:hover {
+  color: #ffffff;
+  background: rgba(185, 28, 28, 0.82);
+}

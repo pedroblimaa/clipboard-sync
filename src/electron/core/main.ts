@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import started from 'electron-squirrel-startup'
 import path from 'node:path'
 import { RelayBridge } from '../relay/bridge'
@@ -17,6 +17,7 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
@@ -40,6 +41,7 @@ const createWindow = () => {
 }
 
 app.on('ready', async () => {
+  registerWindowIpc()
   registerClipboardIpc(relayBridge)
   await relayBridge.initialize()
   createWindow()
@@ -60,3 +62,28 @@ app.on('activate', () => {
 app.on('before-quit', () => {
   relayBridge.dispose()
 })
+
+function registerWindowIpc() {
+  ipcMain.handle('window:minimize', event => {
+    BrowserWindow.fromWebContents(event.sender)?.minimize()
+  })
+
+  ipcMain.handle('window:toggle-maximize', event => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+
+    if (!window) {
+      return
+    }
+
+    if (window.isMaximized()) {
+      window.unmaximize()
+      return
+    }
+
+    window.maximize()
+  })
+
+  ipcMain.handle('window:close', event => {
+    BrowserWindow.fromWebContents(event.sender)?.close()
+  })
+}
