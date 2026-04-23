@@ -1,0 +1,28 @@
+#main-panel {
+  flex: 1;
+}
+
+ul {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  cursor: pointer;
+  transition: 0.3s;
+  border-radius: 0.7rem;
+}
+
+li:hover {
+  background-color: var(--color-bg-items-hover);
+}
+
+.device {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}

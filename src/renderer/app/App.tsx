@@ -1,10 +1,12 @@
-import './App.css';
-import { ClipboardPanel } from '../components/ClipboardPanel';
+import './App.css'
+import { MainPanel } from '../components/MainPanel/MainPanel'
+import { Footer } from '../components/Footer/Footer'
 
 export function App() {
   return (
-    <main className="app-shell">
-      <ClipboardPanel />
+    <main className='app-shell'>
+      <MainPanel />
+      <Footer />
     </main>
-  );
+  )
 }
