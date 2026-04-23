@@ -1,12 +1,50 @@
 #config-panel {
   flex: 1;
   background-color: var(--color-bg-light);
-  margin: 0 1rem;
+  margin: 0 0.6rem;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   border-radius: 1rem;
+}
+
+.config-header {
+  position: relative;
+  padding-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.config-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.config-title,
+.config-status,
+.relay-input,
+.config-connect-button {
+  display: flex;
+  align-items: center;
+}
+
+.config-title {
+  gap: 0.6rem;
+  font-weight: 700;
+}
+
+.config-title svg,
+.relay-input svg {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
 }
 
 .config-field {
@@ -25,17 +63,70 @@
 }
 
 .config-status {
-  padding: 0.9rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  border-radius: 0.7rem;
-  background-color: var(--color-bg-items-hover);
+  --config-status-color: var(--color-status-disconnected);
+  --config-status-glow: var(--color-status-disconnected-glow);
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background-color: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.config-status.status-pill-connected {
+  --config-status-color: var(--color-status-connected);
+  --config-status-glow: var(--color-status-connected-glow);
+}
+
+.config-status.status-pill-connecting,
+.config-status.status-pill-reconnecting {
+  --config-status-color: var(--color-status-connecting);
+  --config-status-glow: var(--color-status-connecting-glow);
+}
+
+.config-status.status-pill-disconnected {
+  --config-status-color: var(--color-status-disconnected);
+  --config-status-glow: var(--color-status-disconnected-glow);
+}
+
+.status-dot {
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 999px;
+  background-color: var(--config-status-color);
+  box-shadow:
+    0 0 0.4rem var(--config-status-glow),
+    0 0 0.9rem var(--config-status-glow);
+  flex-shrink: 0;
 }
 
 .status-detail {
   color: var(--color-text-muted);
   line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.relay-input {
+  gap: 0.75rem;
+  padding: 0 1rem;
+  border-radius: 0.7rem;
+  background-color: var(--color-bg);
+  transition: box-shadow 0.2s ease;
+}
+
+.relay-input:focus-within {
+  box-shadow: 0 0 0 0.2rem rgba(34, 197, 94, 0.14);
+}
+
+.relay-input input {
+  padding-inline: 0;
+  border: 0;
+  background: transparent;
+}
+
+.relay-input input:focus {
+  box-shadow: none;
 }
 
 .status-pill {
@@ -47,23 +138,77 @@
   letter-spacing: 0.04em;
 }
 
-.status-pill-connected {
+.status-pill.status-pill-connected {
   color: #8ff0b3;
   background: rgba(34, 197, 94, 0.16);
 }
 
-.status-pill-connecting,
-.status-pill-reconnecting {
+.status-pill.status-pill-connecting,
+.status-pill.status-pill-reconnecting {
   color: #ffd27f;
   background: rgba(245, 158, 11, 0.18);
 }
 
-.status-pill-disconnected {
+.status-pill.status-pill-disconnected {
   color: #ff9b9b;
   background: rgba(239, 68, 68, 0.16);
 }
 
 .connect-button {
-  align-self: flex-start;
+  align-self: flex-end;
   min-width: 9rem;
+}
+
+.config-connect-button {
+  --button-arrow-left: calc(100% - 2.1rem);
+  --button-arrow-hover-x: 0.18rem;
+  --button-arrow-rotation: 0deg;
+  position: relative;
+  gap: 0.55rem;
+  justify-content: center;
+  padding-left: 1.35rem;
+  padding-right: 2.7rem;
+  border-radius: 0.7rem;
+  background: #ccc;
+  box-shadow: none;
+  color: #222;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    padding 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.18s ease;
+}
+
+.config-connect-button:disabled {
+  opacity: 1;
+}
+
+.config-connect-button-disconnect {
+  --button-arrow-left: 1rem;
+  --button-arrow-hover-x: -0.18rem;
+  --button-arrow-rotation: 180deg;
+  padding-left: 2.7rem;
+  padding-right: 1.35rem;
+}
+
+.config-connect-button:hover:not(:disabled) {
+  background: #d8d8d8;
+  transform: translateY(-1px);
+}
+
+.config-connect-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.button-arrow {
+  position: absolute;
+  left: var(--button-arrow-left);
+  transition:
+    left 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.2s ease;
+  transform: rotate(var(--button-arrow-rotation));
+}
+
+.config-connect-button:hover:not(:disabled) .button-arrow {
+  transform: translateX(var(--button-arrow-hover-x)) rotate(var(--button-arrow-rotation));
 }
