@@ -1,7 +1,7 @@
 import type { ClientInfo } from '../../shared/relay';
 
 export interface RelayMessage {
-  type: 'identify' | 'normal';
+  type: 'identify' | 'clipboard';
   content?: string;
   clientInfo?: ClientInfo;
 }
@@ -13,10 +13,11 @@ export function createIdentifyMessage(clientInfo: ClientInfo): RelayMessage {
   };
 }
 
-export function createNormalMessage(content: string): RelayMessage {
+export function createClipboardMessage(content: string, clientInfo: ClientInfo): RelayMessage {
   return {
-    type: 'normal',
+    type: 'clipboard',
     content,
+    clientInfo,
   };
 }
 

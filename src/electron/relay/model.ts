@@ -9,7 +9,7 @@ export interface RelayClientSnapshot {
 
 export interface RelayClientCallbacks {
   onStatusChange?: () => void
-  onMessage?: (content: string) => void
+  onMessage?: (content: string, clientInfo?: ClientInfo) => void
   onError?: (error: Error) => void
   onPeerConnected?: (clientInfo?: ClientInfo) => void
 }

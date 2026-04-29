@@ -1,16 +1,8 @@
 import { WebSocket, type RawData } from 'ws'
 import type { RelayConnectionState } from '../../shared/relay'
-import {
-  createIdentifyMessage,
-  createNormalMessage,
-  type RelayMessage,
-  parseRelayMessage,
-} from './protocol'
+import { createClipboardMessage, createIdentifyMessage, type RelayMessage, parseRelayMessage } from './protocol'
 import { relayLogger } from '../shared/logger'
-import type {
-  RelayClientParams,
-  RelayClientSnapshot,
-} from './model'
+import type { RelayClientParams, RelayClientSnapshot } from './model'
 
 export class RelayClient {
   private ws: WebSocket | undefined
@@ -24,12 +16,7 @@ export class RelayClient {
   private readonly reconnectInterval: number
   private readonly callbacks: NonNullable<RelayClientParams['callbacks']>
 
-  constructor({
-    relayUrl,
-    clientInfo,
-    reconnectInterval = 3000,
-    callbacks = {},
-  }: RelayClientParams) {
+  constructor({ relayUrl, clientInfo, reconnectInterval = 3000, callbacks = {} }: RelayClientParams) {
     this.relayUrl = relayUrl
     this.clientInfo = clientInfo
     this.reconnectInterval = reconnectInterval
@@ -70,7 +57,9 @@ export class RelayClient {
       return
     }
 
-    this.ws.send(JSON.stringify(createNormalMessage(message)))
+    const clipboardMessage = createClipboardMessage(message, this.clientInfo)
+    this.ws.send(JSON.stringify(clipboardMessage))
+
     return true
   }
 
@@ -106,9 +95,9 @@ export class RelayClient {
       case 'identify':
         this.callbacks.onPeerConnected?.(message.clientInfo)
         break
-      case 'normal':
+      case 'clipboard':
         if (typeof message.content === 'string') {
-          this.callbacks.onMessage?.(message.content)
+          this.callbacks.onMessage?.(message.content, message.clientInfo)
         }
         break
     }

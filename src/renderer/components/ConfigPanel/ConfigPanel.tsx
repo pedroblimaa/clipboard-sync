@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
 import { ArrowRight, Link2, Wifi } from 'lucide-react'
 import type { RelayConnectionState } from '../../../shared/relay'
 import './ConfigPanel.css'
@@ -32,9 +32,18 @@ export function ConfigPanel({
   const handleConnectionUrlChange = (event: ChangeEvent<HTMLInputElement>) => {
     onConnectionUrlChange(event.target.value)
   }
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (isBusy) {
+      return
+    }
+
+    onConnectionToggle()
+  }
 
   return (
-    <section id='config-panel'>
+    <form id='config-panel' onSubmit={handleSubmit}>
       <div className='config-header'>
         <div className='config-title'>
           <Wifi size={18} strokeWidth={2.3} aria-hidden='true' />
@@ -64,11 +73,11 @@ export function ConfigPanel({
 
       <span className='status-detail'>{statusDetail}</span>
 
-      <button className={buttonClassName} type='button' onClick={onConnectionToggle} disabled={isBusy}>
-        <span>{connectionButtonLabel}</span>
+      <button className={buttonClassName} type='submit' disabled={isBusy}>
+        <span className='config-connect-button-label'>{connectionButtonLabel}</span>
         <ArrowRight className='button-arrow' size={17} strokeWidth={2.4} aria-hidden='true' />
       </button>
-    </section>
+    </form>
   )
 }
 

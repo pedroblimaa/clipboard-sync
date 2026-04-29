@@ -1,7 +1,6 @@
 import { useEffect, useEffectEvent, useState } from 'react'
-import { clipboardApi, type RelayStatus } from '../lib/electron-api'
+import { clipboardApi, type ClipboardSyncItem, type RelayStatus } from '../lib/electron-api'
 import {
-  buildLogEntry,
   buildStatusDetail,
   getStatusLabel,
   initialRelayStatus,
@@ -12,7 +11,7 @@ import {
 export function useClipboard() {
   const [connectionUrl, setConnectionUrl] = useState('')
   const [messageToSend, setMessageToSend] = useState('')
-  const [receivedMessages, setReceivedMessages] = useState('')
+  const [clipboardItems, setClipboardItems] = useState<ClipboardSyncItem[]>([])
   const [relayStatus, setRelayStatus] = useState(initialRelayStatus)
   const [statusDetail, setStatusDetail] = useState('Enter a websocket URL and connect.')
   const [isTogglingConnection, setIsTogglingConnection] = useState(false)
@@ -24,12 +23,13 @@ export function useClipboard() {
     setStatusDetail(buildStatusDetail(status))
   })
 
-  const appendReceivedMessage = useEffectEvent((content: string) => {
-    setReceivedMessages(currentMessages => {
-      const nextMessage = buildLogEntry(content)
-      return currentMessages ? `${currentMessages}\n${nextMessage}` : nextMessage
-    })
-    setStatusDetail('Received a new message from the websocket.')
+  const appendClipboardItem = useEffectEvent((item: ClipboardSyncItem) => {
+    setClipboardItems(currentItems => [item, ...currentItems])
+    setStatusDetail(
+      item.source === 'local'
+        ? 'Sent copied text to the relay.'
+        : 'Received copied text from the relay.',
+    )
   })
 
   useEffect(() => {
@@ -37,8 +37,8 @@ export function useClipboard() {
 
     void loadInitialRelayStatus(() => isActive, syncRelayStatus, setStatusDetail)
 
-    const unsubscribeClipboard = clipboardApi.onClipboardUpdated(content => {
-      appendReceivedMessage(content)
+    const unsubscribeClipboard = clipboardApi.onClipboardUpdated(item => {
+      appendClipboardItem(item)
     })
     const unsubscribeRelayStatus = clipboardApi.onRelayStatus(status => {
       syncRelayStatus(status)
@@ -60,7 +60,7 @@ export function useClipboard() {
   return {
     connectionUrl,
     messageToSend,
-    receivedMessages,
+    clipboardItems,
     relayStatus,
     statusDetail,
     statusLabel: getStatusLabel(relayStatus),

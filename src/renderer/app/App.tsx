@@ -14,7 +14,7 @@ export function App() {
   const [screenDirection, setScreenDirection] = useState<ScreenDirection>('forward')
   const {
     connectionUrl,
-    receivedMessages,
+    clipboardItems,
     relayStatus,
     statusDetail,
     statusLabel,
@@ -24,7 +24,6 @@ export function App() {
     handleConnectionToggle,
   } = useClipboard()
 
-  const clipboardItems = toClipboardItems(receivedMessages)
   const connectionState = relayStatus.connectionState
   const isClipboardView = activeView === 'clipboard'
   const screenClassName = `app-screen app-screen-${screenDirection}`
@@ -70,16 +69,4 @@ export function App() {
       />
     </main>
   )
-}
-
-function toClipboardItems(receivedMessages: string) {
-  if (!receivedMessages) {
-    return []
-  }
-
-  return receivedMessages
-    .split('\n')
-    .map(message => message.trim())
-    .filter(Boolean)
-    .reverse()
 }

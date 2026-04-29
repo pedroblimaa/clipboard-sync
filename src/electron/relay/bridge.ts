@@ -1,19 +1,26 @@
 import { BrowserWindow, clipboard, type App } from 'electron'
-import type { ClientInfo, RelayStatus } from '../../shared/relay'
+import type { ClipboardSyncItem, ClipboardSyncSource, ClientInfo, RelayStatus } from '../../shared/relay'
 import { bridgeLogger } from '../shared/logger'
 import { loadDeviceIdentity } from './deviceIdentity'
 import { RelayClient } from './client'
 import type { RelayClientCallbacks } from './model'
 
+const CLIPBOARD_POLL_INTERVAL_MS = 500
+
+type RendererChannel = 'relay:status' | 'clipboard:updated'
+
 export class RelayBridge {
   private window: BrowserWindow | null = null
   private relayClient: RelayClient | null = null
   private deviceIdentity: ClientInfo | null = null
+  private clipboardPollInterval: ReturnType<typeof setInterval> | undefined
+  private lastClipboardContent = ''
 
   constructor(private readonly electronApp: App) {}
 
   async initialize() {
-    this.deviceIdentity ??= await loadDeviceIdentity(this.electronApp)
+    await this.getDeviceIdentity()
+    this.initializeClipboardMonitor()
   }
 
   setWindow(nextWindow: BrowserWindow | null) {
@@ -36,16 +43,33 @@ export class RelayBridge {
     return await this.emitAndGetStatus()
   }
 
-  updateClipboard(content: string) {
+  updateClipboard(content: string, clientInfo?: ClientInfo) {
+    this.lastClipboardContent = content
     clipboard.writeText(content)
-    this.emitClipboardUpdated(content)
+
+    this.emitClipboardSynced({
+      content,
+      source: 'remote',
+      clientInfo,
+    })
 
     return true
   }
 
-  sendClipboard(content: string) {
+  async sendClipboard(content: string) {
+    const clientInfo = await this.getDeviceIdentity()
+    const wasSent = this.relayClient?.send(content) ?? false
+
+    if (wasSent) {
+      this.emitClipboardSynced({
+        content,
+        source: 'local',
+        clientInfo,
+      })
+    }
+
     return {
-      ok: this.relayClient?.send(content) ?? false,
+      ok: wasSent,
     }
   }
 
@@ -54,6 +78,7 @@ export class RelayBridge {
   }
 
   dispose() {
+    this.stopClipboardMonitor()
     this.disconnectRelayClient()
     this.window = null
   }
@@ -80,7 +105,7 @@ export class RelayBridge {
   }
 
   private async getDeviceIdentity() {
-    await this.initialize()
+    this.deviceIdentity ??= await loadDeviceIdentity(this.electronApp)
     return this.deviceIdentity as ClientInfo
   }
 
@@ -103,11 +128,45 @@ export class RelayBridge {
   private createRelayClientCallbacks(): RelayClientCallbacks {
     return {
       onStatusChange: () => void this.emitRelayStatus(),
-      onMessage: content => this.updateClipboard(content),
+      onMessage: (content, clientInfo) => void this.applyRemoteClipboard(content, clientInfo),
       onError: error => bridgeLogger.error('Relay error:', error),
       onPeerConnected: peerClientInfo =>
         bridgeLogger.info('Relay peer connected:', peerClientInfo?.clientName, peerClientInfo?.clientId),
     }
+  }
+
+  private initializeClipboardMonitor() {
+    this.lastClipboardContent = clipboard.readText()
+
+    this.clipboardPollInterval ??= setInterval(() => {
+      void this.syncLocalClipboardChangeToRelay()
+    }, CLIPBOARD_POLL_INTERVAL_MS)
+  }
+
+  private stopClipboardMonitor() {
+    clearInterval(this.clipboardPollInterval)
+    this.clipboardPollInterval = undefined
+  }
+
+  private async syncLocalClipboardChangeToRelay() {
+    const currentClipboardContent = clipboard.readText()
+
+    if (!currentClipboardContent || currentClipboardContent === this.lastClipboardContent) {
+      return
+    }
+
+    this.lastClipboardContent = currentClipboardContent
+    await this.sendClipboard(currentClipboardContent)
+  }
+
+  private async applyRemoteClipboard(content: string, clientInfo?: ClientInfo) {
+    const localClientInfo = await this.getDeviceIdentity()
+
+    if (clientInfo?.clientId === localClientInfo.clientId) {
+      return
+    }
+
+    this.updateClipboard(content, clientInfo)
   }
 
   private async emitRelayStatus() {
@@ -120,8 +179,26 @@ export class RelayBridge {
     return await this.getStatus()
   }
 
-  private emitClipboardUpdated(content: string) {
-    this.sendToWindow('clipboard:updated', content)
+  private emitClipboardSynced({
+    content,
+    source,
+    clientInfo,
+  }: {
+    content: string
+    source: ClipboardSyncSource
+    clientInfo?: ClientInfo
+  }) {
+    const syncedAt = new Date().toISOString()
+    const item: ClipboardSyncItem = {
+      id: `${syncedAt}-${source}-${clientInfo?.clientId ?? 'unknown-device'}`,
+      content,
+      deviceId: clientInfo?.clientId ?? null,
+      deviceName: clientInfo?.clientName ?? 'Unknown device',
+      source,
+      syncedAt,
+    }
+
+    this.sendToWindow('clipboard:updated', item)
   }
 
   private disconnectRelayClient() {
@@ -129,7 +206,7 @@ export class RelayBridge {
     this.relayClient = null
   }
 
-  private sendToWindow(channel: 'relay:status' | 'clipboard:updated', payload: RelayStatus | string) {
+  private sendToWindow(channel: RendererChannel, payload: RelayStatus | ClipboardSyncItem) {
     if (!this.window || this.window.isDestroyed()) {
       return
     }

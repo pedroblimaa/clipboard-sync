@@ -14,7 +14,7 @@
   align-items: center;
   gap: 0.55rem;
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-strong);
   letter-spacing: 0.02em;
   -webkit-app-region: drag;
 }

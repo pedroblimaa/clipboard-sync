@@ -1,5 +1,5 @@
 export {};
-import type { RelayStatus } from '../../shared/relay';
+import type { ClipboardSyncItem, RelayStatus } from '../../shared/relay';
 
 declare global {
   interface Window {
@@ -13,7 +13,7 @@ declare global {
       sendMessage: (content: string) => Promise<{ ok: boolean }>;
       getMessage: () => Promise<string>;
       writeClipboard: (content: string) => Promise<boolean>;
-      onClipboardUpdated: (callback: (content: string) => void) => () => void;
+      onClipboardUpdated: (callback: (item: ClipboardSyncItem) => void) => () => void;
       onRelayStatus: (callback: (status: RelayStatus) => void) => () => void;
     };
   }

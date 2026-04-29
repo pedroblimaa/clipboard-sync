@@ -2,7 +2,7 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 import { contextBridge, ipcRenderer } from 'electron';
-import type { RelayStatus } from '../../shared/relay';
+import type { ClipboardSyncItem, RelayStatus } from '../../shared/relay';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
@@ -14,8 +14,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   sendMessage: (content: string) => ipcRenderer.invoke('clipboard:send', content),
   getMessage: () => ipcRenderer.invoke('clipboard:get'),
   writeClipboard: (content: string) => ipcRenderer.invoke('clipboard:write', content),
-  onClipboardUpdated: (callback: (content: string) => void) => {
-    const listener = (_event: unknown, content: string) => callback(content)
+  onClipboardUpdated: (callback: (item: ClipboardSyncItem) => void) => {
+    const listener = (_event: unknown, item: ClipboardSyncItem) => callback(item)
     ipcRenderer.on('clipboard:updated', listener)
 
     return () => {

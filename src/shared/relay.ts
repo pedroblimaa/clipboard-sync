@@ -3,6 +3,17 @@ export interface ClientInfo {
   clientName: string;
 }
 
+export type ClipboardSyncSource = 'local' | 'remote';
+
+export interface ClipboardSyncItem {
+  id: string;
+  content: string;
+  deviceId: string | null;
+  deviceName: string;
+  source: ClipboardSyncSource;
+  syncedAt: string;
+}
+
 export type RelayConnectionState =
   | 'disconnected'
   | 'connecting'

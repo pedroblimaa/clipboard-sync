@@ -1,6 +1,6 @@
-import type { RelayStatus } from '../../shared/relay';
+import type { ClipboardSyncItem, RelayStatus } from '../../shared/relay';
 
-export type { RelayStatus };
+export type { ClipboardSyncItem, RelayStatus };
 
 export const clipboardApi = {
   connectRelay(relayUrl: string) {
@@ -15,7 +15,7 @@ export const clipboardApi = {
   sendMessage(content: string) {
     return window.electronAPI.sendMessage(content);
   },
-  onClipboardUpdated(callback: (content: string) => void) {
+  onClipboardUpdated(callback: (item: ClipboardSyncItem) => void) {
     return window.electronAPI.onClipboardUpdated(callback);
   },
   onRelayStatus(callback: (status: RelayStatus) => void) {

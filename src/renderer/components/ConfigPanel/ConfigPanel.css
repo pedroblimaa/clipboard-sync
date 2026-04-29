@@ -38,7 +38,7 @@
 
 .config-title {
   gap: 0.6rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-strong);
 }
 
 .config-title svg,
@@ -55,7 +55,7 @@
 
 .config-field span {
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-medium);
 }
 
 .config-field input {
@@ -71,7 +71,7 @@
   background-color: var(--color-bg);
   color: var(--color-text-muted);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-strong);
 }
 
 .config-status.status-pill-connected {
@@ -123,35 +123,11 @@
   padding-inline: 0;
   border: 0;
   background: transparent;
+  font-weight: var(--font-weight-normal);
 }
 
 .relay-input input:focus {
   box-shadow: none;
-}
-
-.status-pill {
-  width: fit-content;
-  padding: 0.35rem 0.65rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
-.status-pill.status-pill-connected {
-  color: #8ff0b3;
-  background: rgba(34, 197, 94, 0.16);
-}
-
-.status-pill.status-pill-connecting,
-.status-pill.status-pill-reconnecting {
-  color: #ffd27f;
-  background: rgba(245, 158, 11, 0.18);
-}
-
-.status-pill.status-pill-disconnected {
-  color: #ff9b9b;
-  background: rgba(239, 68, 68, 0.16);
 }
 
 .connect-button {
@@ -189,6 +165,10 @@
   --button-arrow-rotation: 180deg;
   padding-left: 2.7rem;
   padding-right: 1.35rem;
+}
+
+.config-connect-button-disconnect .config-connect-button-label {
+  font-weight: var(--font-weight-strong);
 }
 
 .config-connect-button:hover:not(:disabled) {
