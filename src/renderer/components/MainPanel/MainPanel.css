@@ -52,8 +52,12 @@
 .text {
   min-width: 0;
   color: var(--color-text-soft);
+  display: -webkit-box;
   font-weight: var(--font-weight-light);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
   overflow-wrap: anywhere;
+  overflow: hidden;
 }
 
 .device {
